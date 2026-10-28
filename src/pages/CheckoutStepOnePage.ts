@@ -1,11 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
-
-type GuestUser = {
-    firstName: string;
-    lastName: string;
-    postalCode: string;
-};
+import type { CheckoutCustomer as GuestUser } from '@utils/DataGenerator';
 
 /**
  * Checkout step 1 - guest details form (firstName / lastName / postalCode).
@@ -15,7 +10,7 @@ type GuestUser = {
  * POM does NOT hide the quirk because the lesson uses it to demonstrate
  * dealing with flaky UIs.
  */
-export class CheckoutStepOnePage extends BasePage
+export class CheckoutStepOnePage extends BasePage 
 {
     static readonly PATH = '/playwright/ttacart/checkout-step-one.html';
 
@@ -27,7 +22,7 @@ export class CheckoutStepOnePage extends BasePage
     private readonly cancelButton: Locator;
     private readonly errorBox: Locator;
 
-    constructor(page: Page)
+    constructor(page: Page) 
     {
         super(page, 'CheckoutStepOnePage');
         this.title = page.locator('[data-test="title"]');
@@ -39,33 +34,33 @@ export class CheckoutStepOnePage extends BasePage
         this.errorBox = page.locator('[data-test="error"]');
     }
 
-    async assertLoaded(): Promise<void>
+    async assertLoaded(): Promise<void> 
     {
         await expect(this.title).toContainText('Checkout');
         await expect(this.firstNameInput).toBeVisible();
     }
 
-    async fillGuest(g: GuestUser): Promise<void>
+    async fillGuest(g: GuestUser): Promise<void> 
     {
         await this.el.fill(this.firstNameInput, g.firstName);
         await this.el.fill(this.lastNameInput, g.lastName);
         await this.el.fill(this.postalCodeInput, g.postalCode);
     }
 
-    async continue(): Promise<void>
+    async continue(): Promise<void> 
     {
         await this.el.click(this.continueButton);
         // For valid input the page navigates to step 2; for invalid it stays.
         // Don't blindly assert here - let the spec verify post-state.
     }
 
-    async cancel(): Promise<void>
+    async cancel(): Promise<void> 
     {
         await this.el.click(this.cancelButton);
         await this.page.waitForLoadState('domcontentloaded');
     }
 
-    async expectErrorContains(text: string): Promise<void>
+    async expectErrorContains(text: string): Promise<void> 
     {
         await expect(this.errorBox).toBeVisible();
         await expect(this.errorBox).toContainText(text);
@@ -75,7 +70,7 @@ export class CheckoutStepOnePage extends BasePage
      * Read-only access to the firstName value. Used by tests that check the
      * problem_user "auto-clear on continue" behaviour.
      */
-    async firstNameValue(): Promise<string>
+    async firstNameValue(): Promise<string> 
     {
         return this.el.getValue(this.firstNameInput);
     }

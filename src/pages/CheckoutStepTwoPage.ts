@@ -8,7 +8,7 @@ import { BasePage } from './BasePage';
  *   `<div data-test="subtotal-label">Item total: $29.99</div>`
  * so we parse the trailing dollar amount with a small regex helper.
  */
-export class CheckoutStepTwoPage extends BasePage
+export class CheckoutStepTwoPage extends BasePage 
 {
     static readonly PATH = '/playwright/ttacart/checkout-step-two.html';
 
@@ -19,7 +19,7 @@ export class CheckoutStepTwoPage extends BasePage
     private readonly finishButton: Locator;
     private readonly cancelLink: Locator;
 
-    constructor(page: Page)
+    constructor(page: Page) 
     {
         super(page, 'CheckoutStepTwoPage');
         this.title = page.locator('[data-test="title"]');
@@ -30,13 +30,13 @@ export class CheckoutStepTwoPage extends BasePage
         this.cancelLink = page.locator('[data-test="cancel"]');
     }
 
-    async assertLoaded(): Promise<void>
+    async assertLoaded(): Promise<void> 
     {
         await expect(this.title).toContainText('Overview');
         await expect(this.subtotalLabel).toBeVisible();
     }
 
-    private async parseMoney(loc: Locator): Promise<number>
+    private async parseMoney(loc: Locator): Promise<number> 
     {
         const raw = (await loc.textContent()) ?? '';
         const match = raw.match(/\$([0-9]+\.[0-9]{2})/);
@@ -44,28 +44,28 @@ export class CheckoutStepTwoPage extends BasePage
         return Number(match[1]);
     }
 
-    async subtotal(): Promise<number>
+    async subtotal(): Promise<number> 
     {
         return this.parseMoney(this.subtotalLabel);
     }
 
-    async tax(): Promise<number>
+    async tax(): Promise<number> 
     {
         return this.parseMoney(this.taxLabel);
     }
 
-    async total(): Promise<number>
+    async total(): Promise<number> 
     {
         return this.parseMoney(this.totalLabel);
     }
 
-    async finish(): Promise<void>
+    async finish(): Promise<void> 
     {
         await this.el.click(this.finishButton);
         await this.page.waitForLoadState('domcontentloaded');
     }
 
-    async cancel(): Promise<void>
+    async cancel(): Promise<void> 
     {
         await this.el.click(this.cancelLink);
         await this.page.waitForLoadState('domcontentloaded');

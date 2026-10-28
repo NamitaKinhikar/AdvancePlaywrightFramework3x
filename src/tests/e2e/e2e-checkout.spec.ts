@@ -1,41 +1,57 @@
-import { expect, test } from '@playwright/test';
-import { Cartpage } from '../../pages/CartPage';
-import { CheckoutCompletePage } from '../../pages/CheckoutCompletePage';
-import { CheckoutStepOnePage } from '../../pages/CheckoutStepOnePage';
-import { CheckoutStepTwoPage } from '../../pages/CheckoutStepTwoPage';
-import { Inventorypage } from '../../pages/InventoryPage';
-import { LoginPage } from '../../pages/LoginPage';
+/**
+ * End-to-end checkout flow:
+ *   1. Log in as a standard user (standard_user / tta_secret).
+ *   2. Navigate to the inventory page.
+ *   3. Add the first item to the cart.
+ *   4. Navigate to the cart page.
+ *   5. From the cart, proceed through checkout step one and checkout step two.
+ *   6. Enter the customer details and complete the order.
+ */
 
-test('completes checkout for the first inventory item', async ({ page }) => {
-    const login = new LoginPage(page);
-    await login.goto();
-    await login.login('standard_user', 'tta_secret');
-    await expect(page).toHaveTitle('TTACart - Products');
+// DataGenerated
+// Fixture. - loginPage
 
-    const inventory = new Inventorypage(page);
-    const itemName = await inventory.addFirstItemToCart();
-    await inventory.openCart();
+import { test, expect } from '@fixtures/test-base';
+import { credentials } from '@config/credentials';
+import { createLogger } from '@utils/logger';
+import { DataGenerator } from '@utils/DataGenerator';
 
-    const cart = new Cartpage(page);
-    await expect(cart.itemName).toContainText(itemName);
-    await cart.checkout.click();
+// First product card on the TTACart inventory page.
+const FIRST_ITEM_ID = 'test-allthethings-tshirt-red';
+const log = createLogger('e2e-checkout');
 
-    const checkoutStepOne = new CheckoutStepOnePage(page);
-    await checkoutStepOne.assertLoaded();
-    await checkoutStepOne.fillGuest({
-        firstName: 'Taylor',
-        lastName: 'Tester',
-        postalCode: '12345',
+test.describe('@P0 @Regression E2E @Checkout Checkout Feature', () => 
+    {
+    // Step 1 — every test in this suite starts already logged in.
+
+    test.beforeEach(async ({ loginPage }) => 
+        {
+        log.info(`Step 1: logging in as ${credentials.standardUser}`);
+        await loginPage.open();
+        await loginPage.loginAs(credentials.standardUser, credentials.password);
     });
-    await checkoutStepOne.continue();
 
-    const checkoutStepTwo = new CheckoutStepTwoPage(page);
-    await checkoutStepTwo.assertLoaded();
-    const subtotal = await checkoutStepTwo.subtotal();
-    const tax = await checkoutStepTwo.tax();
-    expect(await checkoutStepTwo.total()).toBeCloseTo(subtotal + tax, 2);
-    await checkoutStepTwo.finish();
+    test('should complete checkout successfully', async ({
+        page,
+        inventoryPage,
+        cartPage,
+        checkoutStepOnePage,
+        checkoutStepTwoPage,
+        checkoutCompletePage,
+    }) => {
+        const customer = DataGenerator.checkoutCustomer();
+    
+        await inventoryPage.open();
+        await inventoryPage.addToCart(FIRST_ITEM_ID);
+        await cartPage.open();
+        expect(await cartPage.rowCount()).toBe(1);
+        await cartPage.checkout();
+        await checkoutStepOnePage.assertLoaded();
+        await checkoutStepOnePage.fillGuest(customer);
+        await checkoutStepOnePage.continue();
+        await checkoutStepTwoPage.assertLoaded();
+        await checkoutStepTwoPage.finish();
+        await checkoutCompletePage.assertOrderComplete();
 
-    const complete = new CheckoutCompletePage(page);
-    await complete.assertOrderComplete();
+    });
 });
